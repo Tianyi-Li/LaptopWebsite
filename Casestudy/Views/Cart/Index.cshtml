@@ -1,0 +1,89 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="card">
+    <div class="card-title text-center mt-5">
+        <h3 class="font-weight-bold">Cart Contents</h3>
+        <img src="/images/cart.png" style="height:10%;width:10%;padding-bottom:5%;" />
+        <h4>Products Currently Selected</h4>
+    </div>
+    <div class="text-center" style="font-size:.70rem;">
+        @{
+            Dictionary<string, object> cart = Context.Session.Get<Dictionary<string, Object>>(SessionVariables.Cart);
+
+            decimal subTotal = 0;
+            decimal tax = 0;
+            decimal orderTotal = 0;
+        }
+        <table class="table table-striped">
+            <tr style="font-weight:bolder;">
+                <th class="text-center">Code</th>
+                <th class="text-left">Name</th>
+                <th class="text-left">Msrp</th>
+                <th class="text-left">Qty</th>
+                <th class="text-left">Extended</th>
+            </tr>
+            @{
+                if (cart != null)
+                {
+                    foreach (var key in cart.Keys)
+                    {
+                        ProductItemViewModel item = JsonConvert.DeserializeObject
+                       <ProductItemViewModel>
+                       (Convert.ToString(cart[key]));
+                        if (item.Qty > 0)
+                        {
+                            
+                            decimal extPrice = 0;
+                            subTotal += item.MSRP * item.Qty;
+                            extPrice = item.MSRP * item.Qty;
+                            <tr>
+                                <td class="text-center">@item.Id</td>
+                                <td class="text-left">@item.PRODUCTNAME</td>
+                                <td class="text-left">@String.Format("{0:C}", item.MSRP)</td>
+                                <td class="text-left">@item.Qty</td>
+                                <td class="text-right">@String.Format("{0:C}", extPrice)</td>
+                            </tr>
+                        }
+                    }
+                    tax = subTotal * (decimal)0.13;
+                    orderTotal = subTotal + tax;
+                }
+            }
+           
+        <tr>
+            <td class="text-center font-weight-bold"></td>
+            <td class="text-left font-weight-bold"></td>
+            <td class="text-left font-weight-bold"></td>
+            <td class="text-left font-weight-bold">Sub Total:</td>
+            <td class="text-right" id="subTotal" style="width:4%;">@String.Format("{0:C}", subTotal)</td>
+        </tr>
+        <tr>
+            <td class="text-center font-weight-bold"></td>
+            <td class="text-left font-weight-bold"></td>
+            <td class="text-left font-weight-bold"></td>
+            <td class="text-left font-weight-bold">Tax:</td>
+            <td class="text-right" id="tax" style="width:4%;">@String.Format("{0:C}", tax)</td>
+        </tr>
+        <tr>
+            <td class="text-center font-weight-bold"></td>
+            <td class="text-left font-weight-bold"></td>
+            <td class="text-left font-weight-bold"></td>
+            <td class="text-left font-weight-bold">Order Total:</td>
+            <td class="text-right" id="orderTotal" style="width:4%;font-weight:bold;">@String.Format("{0:C}", orderTotal)</td>
+        </tr>
+        </table>
+        <hr />
+       
+        <div class="text-center mb-2">
+            <form asp-controller="Cart" asp-action="AddOrder" method="post" role="form">
+                @if (Context.Session.Get(SessionVariables.User) != null)
+                {
+                    <button type="submit" class="btn btn-sm btn-primary" id="modalbtn">Add Order</button>
+                }
+                &nbsp;<a href="/Cart/ClearCart" class="btn btn-sm btn-success">Clear Cart</a>
+            </form>
+        </div>
+    </div>
+</div>
